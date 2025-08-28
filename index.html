@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask HTML Data Storage - Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .section h2 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+            min-width: 150px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .transaction-hash {
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #667eea;
+        }
+
+        .iframe-container {
+            margin-top: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 400px;
+            border: none;
+        }
+
+        .extra-output {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .file-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+        }
+
+        .connection-status {
+            display: block !important;
+        }
+
+        .test-section {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+        }
+
+        .test-section h2 {
+            color: white;
+        }
+
+        .concept-analysis {
+            background: linear-gradient(45deg, #6f42c1, #e83e8c);
+            color: white;
+            border: none;
+        }
+
+        .concept-analysis h2 {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Blockchain HTML Storage - Concept Test</h1>
+        
+        <div id="connectionStatus" class="status info connection-status">
+            MetaMask not connected
+        </div>
+
+        <!-- Test Section -->
+        <div class="section test-section">
+            <h2>🧪 Test the Provided Hash</h2>
+            <p>Let's test your hash: <code>0xd0764c59ea0bbab598c1b8380fc2047986b7453916ef431cee68ed4874a9ff3e</code></p>
+            <button onclick="testProvidedHash()">Test Hash</button>
+            <div id="testStatus" class="status"></div>
+            <div id="testOutput" class="extra-output" style="display: none;"></div>
+        </div>
+
+        <!-- Concept Analysis -->
+        <div class="section concept-analysis">
+            <h2>💡 Concept Analysis</h2>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                <h3>Advantages of Your Approach:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Decentralization:</strong> No domain dependency</li>
+                    <li><strong>Immutability:</strong> Blockchain-secured content</li>
+                    <li><strong>Compression:</strong> Efficient data storage</li>
+                    <li><strong>Versioning:</strong> Every change = new hash</li>
+                </ul>
+                
+                <h3 style="margin-top: 20px;">Possible Extensions:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>QR Code Integration:</strong> Hash + password in QR</li>
+                    <li><strong>IPFS Hybrid:</strong> Large files in IPFS, hash on blockchain</li>
+                    <li><strong>Smart Contracts:</strong> Automatic content management</li>
+                    <li><strong>DNS Alternative:</strong> Mapping names to hashes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- MetaMask Connection -->
+        <div class="section">
+            <h2>🔗 MetaMask Connection</h2>
+            <button id="connectButton" onclick="connectMetaMask()">Connect with MetaMask</button>
+            <div id="accountInfo"></div>
+        </div>
+
+        <!-- Send HTML Data -->
+        <div class="section">
+            <h2>📤 Send HTML Data</h2>
+            <div class="input-group">
+                <label for="recipientAddress">Recipient Address (for data):</label>
+                <input type="text" id="recipientAddress" placeholder="0x... (other address for data storage)" value="0x000000000000000000000000000000000000dEaD" />
+                <small style="color: #666; font-size: 12px;">Note: MetaMask does not allow data to your own address. Use another address.</small>
+            </div>
+            <div class="input-group">
+                <label for="htmlData">HTML Code:</label>
+                <textarea id="htmlData" placeholder="Enter your HTML code here..."><!DOCTYPE html>
+<html>
+<head>
+    <title>Blockchain Stored Website</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 0; 
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 600px;
+        }
+        h1 { color: #333; margin-bottom: 20px; }
+        p { color: #666; font-size: 18px; margin: 10px 0; }
+        .highlight { color: #ff6b6b; font-weight: bold; }
+        .innovation { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+            border-left: 4px solid #4ecdc4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 Decentralized Web</h1>
+        <p>This HTML page was stored and retrieved via the <span class="highlight">Ethereum Blockchain</span>!</p>
+        <div class="innovation">
+            <h2>🚀 Innovation</h2>
+            <p>No more domains needed - only <span class="highlight">Transaction Hashes</span>!</p>
+            <p>Technical Test • Blockchain Storage • Immutable</p>
+        </div>
+        <p>Timestamp: <span class="highlight" id="timestamp"></span></p>
+        <script>
+            document.getElementById('timestamp').textContent = new Date().toLocaleString('en-US');
+        </script>
+    </div>
+</body>
+</html></textarea>
+            </div>
+            <div class="input-group">
+                <label for="fileInput">Or upload HTML file:</label>
+                <input type="file" id="fileInput" accept=".html,.htm" />
+            </div>
+            <button id="sendButton" onclick="sendHtmlData()" disabled>Send HTML Data</button>
+            <div id="sendStatus" class="status"></div>
+            <div id="sendExtraOutput" class="extra-output" style="display: none;"></div>
+        </div>
+
+        <!-- Retrieve HTML Data -->
+        <div class="section">
+            <h2>📥 Retrieve HTML Data</h2>
+            <div class="input-group">
+                <label for="transactionHash">Transaction Hash:</label>
+                <input type="text" id="transactionHash" placeholder="0x..." value="0xd0764c59ea0bbab598c1b8380fc2047986b7453916ef431cee68ed4874a9ff3e" />
+            </div>
+            <button id="retrieveButton" onclick="retrieveHtmlData()" disabled>Retrieve HTML Data</button>
+            <div id="retrieveStatus" class="status"></div>
+            <div id="retrieveExtraOutput" class="extra-output" style="display: none;"></div>
+            
+            <div id="iframeContainer" class="iframe-container" style="display: none;">
+                <h3>📄 Loaded HTML Page:</h3>
+                <iframe id="htmlFrame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAccount = null;
+        const MAX_SIZE_BYTES = 90 * 1024; // 90 KB
+
+        // Test function for the provided hash
+        async function testProvidedHash() {
+            const testHash = "0xd0764c59ea0bbab598c1b8380fc2047986b7453916ef431cee68ed4874a9ff3e";
+            
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('MetaMask is not installed!');
+                }
+
+                showTestStatus('🔍 Loading sample hash from blockchain...');
+
+                const transaction = await window.ethereum.request({
+                    method: 'eth_getTransactionByHash',
+                    params: [testHash],
+                });
+
+                if (!transaction) {
+                    throw new Error('Transaction not found. It might be on a different network.');
+                }
+
+                const txDataHex = transaction.input;
+                if (!txDataHex || txDataHex === '0x') {
+                    throw new Error('No data found in this transaction.');
+                }
+
+                const decodedDataString = hexToString(txDataHex);
+                
+                // Check for file data prefix
+                const prefix = "ETH_FILE_DATA:";
+                if (decodedDataString.startsWith(prefix)) {
+                    const parts = decodedDataString.substring(prefix.length).split(';');
+                    let mimeType = 'text/html';
+                    let fileName = 'blockchain_content.html';
+                    let base64Data = '';
+
+                    parts.forEach(part => {
+                        if (part.startsWith('type=')) {
+                            mimeType = decodeURIComponent(part.substring(5));
+                        } else if (part.startsWith('name=')) {
+                            fileName = decodeURIComponent(part.substring(5));
+                        } else if (part.startsWith('data=')) {
+                            base64Data = part.substring(5);
+                        }
+                    });
+
+                    // Decompress data
+                    const decompressedContent = LZString.decompressFromBase64(base64Data);
+                    
+                    if (decompressedContent) {
+                        loadHtmlInIframe(decompressedContent);
+                        
+                        showTestOutput(`
+                            <h3>✅ Successfully loaded!</h3>
+                            <p><strong>Filename:</strong> ${fileName}</p>
+                            <p><strong>MIME Type:</strong> ${mimeType}</p>
+                            <p><strong>Size:</strong> ${new Blob([decompressedContent]).size} Bytes</p>
+                            <p><strong>Network:</strong> ${transaction.chainId ? 'Chain ID: ' + parseInt(transaction.chainId, 16) : 'Unknown'}</p>
+                            <div class="transaction-hash">
+                                <strong>Proof of Concept successful!</strong><br>
+                                Your system works - HTML was successfully retrieved from the blockchain.
+                            </div>
+                        `);
+                        
+                        showTestStatus('✅ Test successful! Your concept works!');
+                    } else {
+                        throw new Error('Error decompressing data.');
+                    }
+                } else {
+                    showTestOutput(`
+                        <h3>🔍 Plain text data found:</h3>
+                        <pre>${decodedDataString.substring(0, 500)}${decodedDataString.length > 500 ? '...' : ''}</pre>
+                    `);
+                    showTestStatus('✅ Data successfully retrieved (Plain Text)');
+                }
+
+            } catch (error) {
+                console.error("Test error:", error);
+                showTestStatus(`❌ Test Error: ${error.message}`, true);
+                showTestOutput('');
+            }
+        }
+
+        function showTestStatus(message, isError = false) {
+            const statusDiv = document.getElementById('testStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            statusDiv.className = isError ? 'status error' : 'status success';
+        }
+
+        function showTestOutput(content) {
+            const outputDiv = document.getElementById('testOutput');
+            outputDiv.innerHTML = content;
+            outputDiv.style.display = content ? 'block' : 'none';
+        }
+
+        // Helper functions
+        function showStatus(elementId, message, isError = false) {
+            const statusDiv = document.getElementById(elementId);
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            statusDiv.className = isError ? 'status error' : 'status success';
+        }
+
+        function showExtraOutput(elementId, content) {
+            const extraOutputDiv = document.getElementById(elementId);
+            extraOutputDiv.innerHTML = content;
+            extraOutputDiv.style.display = content ? 'block' : 'none';
+        }
+
+        function stringToHex(str) {
+            let hex = '';
+            for (let i = 0; i < str.length; i++) {
+                const charCode = str.charCodeAt(i).toString(16);
+                hex += charCode.padStart(2, '0');
+            }
+            return '0x' + hex;
+        }
+
+        function hexToString(hex) {
+            if (!hex || hex === '0x') return '';
+            let str = '';
+            if (hex.startsWith('0x')) {
+                hex = hex.slice(2);
+            }
+            for (let i = 0; i < hex.length; i += 2) {
+                str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+            }
+            return str;
+        }
+
+        async function processHtmlFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const content = event.target.result;
+                        const originalSize = new Blob([content]).size;
+                        
+                        const compressedBase64 = LZString.compressToBase64(content);
+                        const compressedSize = Math.ceil(compressedBase64.length * 3 / 4);
+
+                        if (compressedSize > MAX_SIZE_BYTES) {
+                            reject(new Error(`The compressed HTML file is too large (${(compressedSize / 1024).toFixed(2)} KB). Maximum: 90 KB.`));
+                        } else {
+                            resolve({ 
+                                compressedBase64, 
+                                originalSize, 
+                                compressedSize, 
+                                mimeType: 'text/html',
+                                content
+                            });
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = () => reject(new Error("Error reading file."));
+                reader.readAsText(file);
+            });
+        }
+
+        // MetaMask connection
+        async function connectMetaMask() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({
+                        method: 'eth_requestAccounts'
+                    });
+                    
+                    currentAccount = accounts[0];
+                    updateConnectionStatus('success', `✅ Connected to: ${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`);
+                    
+                    document.getElementById('sendButton').disabled = false;
+                    document.getElementById('retrieveButton').disabled = false;
+                    document.getElementById('connectButton').textContent = 'Connected';
+                    document.getElementById('connectButton').disabled = true;
+
+                    await switchToTestnet();
+                    
+                } catch (error) {
+                    updateConnectionStatus('error', `❌ Connection failed: ${error.message}`);
+                }
+            } else {
+                updateConnectionStatus('error', '❌ MetaMask is not installed!');
+            }
+        }
+
+        async function switchToTestnet() {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xaa36a7' }], // Sepolia Testnet
+                });
+            } catch (switchError) {
+                if (switchError.code === 4902) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [{
+                                chainId: '0xaa36a7',
+                                chainName: 'Sepolia Testnet',
+                                nativeCurrency: {
+                                    name: 'ETH',
+                                    symbol: 'ETH',
+                                    decimals: 18
+                                },
+                                rpcUrls: ['https://sepolia.infura.io/v3/'],
+                                blockExplorerUrls: ['https://sepolia.etherscan.io/']
+                            }]
+                        });
+                    } catch (addError) {
+                        console.error('Error adding testnet:', addError);
+                    }
+                }
+            }
+        }
+
+        // Monitor account changes
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    currentAccount = null;
+                    updateConnectionStatus('info', 'MetaMask not connected');
+                    document.getElementById('sendButton').disabled = true;
+                    document.getElementById('retrieveButton').disabled = true;
+                    document.getElementById('connectButton').textContent = 'Connect with MetaMask';
+                    document.getElementById('connectButton').disabled = false;
+                } else {
+                    currentAccount = accounts[0];
+                    updateConnectionStatus('success', `✅ Connected to: ${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`);
+                    document.getElementById('sendButton').disabled = false;
+                    document.getElementById('retrieveButton').disabled = false;
+                    document.getElementById('connectButton').textContent = 'Connected';
+                    document.getElementById('connectButton').disabled = true;
+                }
+            });
+
+            window.ethereum.on('chainChanged', (chainId) => {
+                // Reload the page when chain changes
+                window.location.reload();
+            });
+        }
+
+        // Send HTML data
+        async function sendHtmlData() {
+            try {
+                const htmlTextarea = document.getElementById('htmlData');
+                const fileInput = document.getElementById('fileInput');
+                const recipientAddress = document.getElementById('recipientAddress').value.trim();
+                let htmlContent = '';
+                let fileName = 'blockchain_data.html';
+
+                if (!recipientAddress || !recipientAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+                    throw new Error('Please enter a valid Ethereum address as recipient!');
+                }
+
+                if (recipientAddress.toLowerCase() === currentAccount.toLowerCase()) {
+                    throw new Error('MetaMask does not allow data transactions to your own address. Please use another address.');
+                }
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileName = file.name;
+                    const processedData = await processHtmlFile(file);
+                    htmlContent = processedData.content;
+                    
+                    showExtraOutput('sendExtraOutput', 
+                        `Original size: ${processedData.originalSize} Bytes<br>
+                         Compressed size (estimated): ${processedData.compressedSize} Bytes`);
+                } else {
+                    htmlContent = htmlTextarea.value.trim();
+                    if (!htmlContent) {
+                        throw new Error('Please enter HTML code or select a file!');
+                    }
+                }
+
+                if (!currentAccount) {
+                    throw new Error('Please connect to MetaMask first!');
+                }
+
+                showStatus('sendStatus', '📡 Compressing and sending HTML data...');
+
+                const compressedBase64 = LZString.compressToBase64(htmlContent);
+                const compressedSize = Math.ceil(compressedBase64.length * 3 / 4);
+
+                if (compressedSize > MAX_SIZE_BYTES) {
+                    throw new Error(`The compressed HTML data is too large (${(compressedSize / 1024).toFixed(2)} KB). Maximum: 90 KB.`);
+                }
+
+                const metadataPrefix = `ETH_FILE_DATA:type=${encodeURIComponent('text/html')};name=${encodeURIComponent(fileName)};data=`;
+                const fullDataString = metadataPrefix + compressedBase64;
+
+                const transactionParameters = {
+                    from: currentAccount,
+                    to: recipientAddress,
+                    value: '0x0',
+                    data: stringToHex(fullDataString)
+                };
+
+                const txHash = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [transactionParameters],
+                });
+
+                showStatus('sendStatus', `✅ HTML data successfully sent! TxHash: ${txHash}`);
+                
+                const currentExtraOutput = document.getElementById('sendExtraOutput').innerHTML;
+                showExtraOutput('sendExtraOutput', 
+                    currentExtraOutput + 
+                    `<br><div class="transaction-hash"><strong>Transaction Hash:</strong><br>${txHash}</div>
+                     <p><strong>Recipient:</strong> ${recipientAddress}</p>`);
+                
+                document.getElementById('transactionHash').value = txHash;
+                htmlTextarea.value = htmlTextarea.defaultValue;
+                fileInput.value = '';
+
+            } catch (error) {
+                console.error("Error in sendHtmlData:", error);
+                showStatus('sendStatus', `❌ Error: ${error.message}`, true);
+                showExtraOutput('sendExtraOutput', '');
+            }
+        }
+
+        // Retrieve HTML data
+        async function retrieveHtmlData() {
+            try {
+                const txHash = document.getElementById('transactionHash').value.trim();
+                if (!txHash.match(/^0x[a-fA-F0-9]{64}$/)) {
+                    throw new Error('Invalid transaction hash!');
+                }
+
+                showStatus('retrieveStatus', `🔍 Loading transaction data for ${txHash}...`);
+
+                const transaction = await window.ethereum.request({
+                    method: 'eth_getTransactionByHash',
+                    params: [txHash],
+                });
+
+                if (!transaction) {
+                    throw new Error('Transaction not found or not yet confirmed.');
+                }
+
+                const txDataHex = transaction.input;
+                if (!txDataHex || txDataHex === '0x') {
+                    throw new Error('No data found in this transaction.');
+                }
+
+                const decodedDataString = hexToString(txDataHex);
+                const prefix = "ETH_FILE_DATA:";
+                
+                if (decodedDataString.startsWith(prefix)) {
+                    const parts = decodedDataString.substring(prefix.length).split(';');
+                    let mimeType = 'text/html';
+                    let fileName = 'retrieved_file.html';
+                    let base64Data = '';
+
+                    parts.forEach(part => {
+                        if (part.startsWith('type=')) {
+                            mimeType = decodeURIComponent(part.substring(5));
+                        } else if (part.startsWith('name=')) {
+                            fileName = decodeURIComponent(part.substring(5));
+                        } else if (part.startsWith('data=')) {
+                            base64Data = part.substring(5);
+                        }
+                    });
+
+                    const decompressedContent = LZString.decompressFromBase64(base64Data);
+                    
+                    if (!decompressedContent) {
+                        throw new Error("Error decompressing data.");
+                    }
+
+                    loadHtmlInIframe(decompressedContent);
+
+                    const blob = new Blob([decompressedContent], { type: mimeType });
+                    const url = URL.createObjectURL(blob);
+
+                    showExtraOutput('retrieveExtraOutput', `
+                        <h3>Retrieved HTML File:</h3>
+                        <p><strong>Filename:</strong> ${fileName}</p>
+                        <p><strong>MIME Type:</strong> ${mimeType}</p>
+                        <p><strong>Size (decompressed):</strong> ${new Blob([decompressedContent]).size} Bytes</p>
+                        <p><a href="${url}" download="${fileName}">📥 Download file</a></p>
+                        <hr>
+                        <p><strong>Transaction Hash:</strong> ${transaction.hash}</p>
+                        <p><strong>From:</strong> ${transaction.from}</p>
+                        <p><strong>To:</strong> ${transaction.to}</p>
+                        <p><strong>Value:</strong> ${parseInt(transaction.value, 16) / 10**18} ETH</p>
+                    `);
+                    
+                    showStatus('retrieveStatus', '✅ HTML file successfully retrieved from blockchain!');
+
+                } else {
+                    showExtraOutput('retrieveExtraOutput', `
+                        <h3>Retrieved Transaction Data (Plain Text):</h3>
+                        <pre>${decodedDataString}</pre>
+                        <hr>
+                        <p><strong>Transaction Hash:</strong> ${transaction.hash}</p>
+                        <p><strong>From:</strong> ${transaction.from}</p>
+                        <p><strong>To:</strong> ${transaction.to}</p>
+                        <p><strong>Value:</strong> ${parseInt(transaction.value, 16) / 10**18} ETH</p>
+                    `);
+
+                    showStatus('retrieveStatus', '✅ Data successfully retrieved from blockchain!');
+                }
+
+            } catch (error) {
+                console.error("Error in retrieveHtmlData:", error);
+                showStatus('retrieveStatus', `❌ Error: ${error.message}`, true);
+                showExtraOutput('retrieveExtraOutput', '');
+            }
+        }
+
+        // Load HTML in iframe
+        function loadHtmlInIframe(htmlContent) {
+            const iframeContainer = document.getElementById('iframeContainer');
+            const iframe = document.getElementById('htmlFrame');
+            
+            iframeContainer.style.display = 'block';
+            
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            iframe.src = url;
+            
+            iframe.onload = () => {
+                URL.revokeObjectURL(url);
+            };
+        }
+
+        // Connection Status Update
+        function updateConnectionStatus(type, message) {
+            const status = document.getElementById('connectionStatus');
+            status.className = `status ${type} connection-status`;
+            status.textContent = message;
+        }
+
+        // File input handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('htmlData').value = event.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Auto-resize textarea
+        document.getElementById('htmlData').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 400) + 'px';
+        });
+
+        // Check if MetaMask is already connected on page load
+        window.addEventListener('load', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                const accounts = await window.ethereum.request({
+                    method: 'eth_accounts'
+                });
+                
+                if (accounts.length > 0) {
+                    currentAccount = accounts[0];
+                    updateConnectionStatus('success', `✅ Already connected to: ${currentAccount.substring(0, 6)}...${currentAccount.substring(38)}`);
+                    document.getElementById('sendButton').disabled = false;
+                    document.getElementById('retrieveButton').disabled = false;
+                    document.getElementById('connectButton').textContent = 'Connected';
+                    document.getElementById('connectButton').disabled = true;
+                }
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we have a sample hash to test
+            const urlParams = new URLSearchParams(window.location.search);
+            const testHash = urlParams.get('hash');
+            if (testHash) {
+                document.getElementById('transactionHash').value = testHash;
+            }
+            
+            // Initialize textarea height
+            const textarea = document.getElementById('htmlData');
+            textarea.style.height = Math.min(textarea.scrollHeight, 400) + 'px';
+        });
+
+        // Utility function to format bytes
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // Copy transaction hash to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show temporary success message
+                const originalText = event.target.textContent;
+                event.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    event.target.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Add click handlers for transaction hashes
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('transaction-hash')) {
+                const hashText = e.target.textContent.match(/0x[a-fA-F0-9]{64}/);
+                if (hashText) {
+                    copyToClipboard(hashText[0]);
+                }
+            }
+        });
+
+        // Enhanced error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+        });
+
+        // Enhanced promise rejection handling
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+    </script>
+</body>
+</html>
