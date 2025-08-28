@@ -168,6 +168,40 @@ const polygonConfig = {
 - Browser wallet extension installed
 - Testnet cryptocurrency for transaction fees
 
+### CORS Configuration
+⚠️ **Important**: Due to browser CORS policies, the application must be served via HTTP(S) server, not opened directly as a file.
+
+#### Recommended Development Servers:
+
+**VS Code Live Server Extension:**
+1. Install "Live Server" extension in VS Code
+2. Right-click `index.html` → "Open with Live Server"
+3. Application opens at `http://localhost:5500`
+
+**Python HTTP Server:**
+```bash
+# Python 3
+python -m http.server 8000
+
+# Python 2
+python -m SimpleHTTPServer 8000
+```
+
+**Node.js Options:**
+```bash
+# Using npx (no installation needed)
+npx serve .
+
+# Using http-server
+npm install -g http-server
+http-server
+```
+
+**Other Options:**
+- Any local development server (XAMPP, WAMP, etc.)
+- GitHub Pages (for live deployment)
+- Netlify, Vercel (for production hosting)
+
 ### Network Configuration
 The application automatically configures supported networks but can be extended for additional chains.
 
